@@ -1,9 +1,15 @@
 class ArticlesController < ApplicationController
+
+  before_filter :load_article
+  before_filter :upcase_titles, :only => [:index]
+  around_filter :apology
+
+
   # GET /articles
   # GET /articles.json
   def index
-    @articles = Article.all
-
+    # @articles = Article.all
+    raise "whoops"
     respond_to do |format|
       format.html # index.html.erb
       format.json { render json: @articles }
@@ -34,7 +40,7 @@ class ArticlesController < ApplicationController
 
   # GET /articles/1/edit
   def edit
-    @article = Article.find(params[:id])
+    # @article = Article.find(params[:id])
   end
 
   # POST /articles
@@ -56,7 +62,7 @@ class ArticlesController < ApplicationController
   # PUT /articles/1
   # PUT /articles/1.json
   def update
-    @article = Article.find(params[:id])
+    # @article = Article.find(params[:id])
 
     respond_to do |format|
       if @article.update_attributes(params[:article])
@@ -79,5 +85,32 @@ class ArticlesController < ApplicationController
       format.html { redirect_to articles_url }
       format.json { head :no_content }
     end
+  end
+
+  def apology
+    begin
+      yield
+    rescue
+      if params[:action] == 'index'
+        render :text => 'bummer'
+      else
+        flash[:notice] = "whoops"
+        redirect_to articles_path
+      end
+    end
+  end
+
+
+  private
+
+
+
+  def load_article
+    @article = Article.find(params[:id]) if params[:id]
+  end
+
+  def upcase_titles
+    @articles = Article.all
+    @articles.each { |article| article.title = article.title.upcase }
   end
 end
